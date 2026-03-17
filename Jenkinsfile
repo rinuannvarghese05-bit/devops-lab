@@ -6,34 +6,38 @@ pipeline {
     }
 
     stages {
+
         stage('Clone') {
             steps {
-                git 'https://github.com/rinuannvarghese05-bit/devops-lab.git'
+                git branch: 'main', url: 'https://github.com/rinuannvarghese05-bit/devops-lab.git'
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE .'
             }
         }
 
-        stage('Login') {
+        stage('Login to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    '''
                 }
             }
         }
 
-        stage('Push') {
+        stage('Push Image') {
             steps {
                 sh 'docker push $IMAGE'
             }
         }
+
     }
 }
